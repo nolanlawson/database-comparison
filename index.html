@@ -6,21 +6,7 @@
 </head>
 <body>
 <h1>Client-side database comparison</h1>
-
-
-<div style="display:inline-block">
-  <img src="kirby.gif"/>
-  <h4>Animated GIF</h4>
-</div>
-<div style="display:inline-block">
-  <img class="spin-js" src="kirby.png"/>
-  <h4>JS animation</h4>
-</div>
-<div style="display:inline-block">
-  <img class="spin" src="kirby.png"/>
-  <h4>CSS animation</h4>
-</div>
-
+<img src="kirby.gif"/>
 <pre id="display"></pre>
 
 <div>
@@ -81,18 +67,5 @@
 <script src="node_modules/localforage/dist/localforage.min.js"></script>
 <script src="node_modules/lokijs/build/lokijs.min.js"></script>
 <script src="index.js"></script>
-<script>
-  var kirbyPng = document.getElementsByClassName('spin-js')[0];
-
-  var rotate = 0;
-  setInterval(function () {
-    rotate -= 5;
-    if (rotate === 360) {
-      rotate = 0;
-    }
-    kirbyPng.style.transform = 'rotate(' + rotate + 'deg)';
-    kirbyPng.style.webkitTransform = 'rotate(' + rotate + 'deg)';
-  }, 14);
-</script>
 </body>
 </html>
