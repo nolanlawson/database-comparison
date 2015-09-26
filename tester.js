@@ -43,6 +43,32 @@ function createTester() {
   }
 
   function pouchTest(numDocs, done) {
+    var promise = Promise.resolve();
+    function addDoc(i) {
+      var doc = createDoc();
+      doc._id = 'doc_' + i;
+      return pouch.put(doc);
+    }
+    for (var i = 0; i < numDocs; i++) {
+      promise = promise.then(addDoc(i));
+    }
+    promise.then(done).catch(console.log.bind(console));
+  }
+
+  function pouchWebSQLTest(numDocs, done) {
+    var promise = Promise.resolve();
+    function addDoc(i) {
+      var doc = createDoc();
+      doc._id = 'doc_' + i;
+      return pouchWebSQL.put(doc);
+    }
+    for (var i = 0; i < numDocs; i++) {
+      promise = promise.then(addDoc(i));
+    }
+    promise.then(done).catch(console.log.bind(console));
+  }
+
+  function pouchBulkTest(numDocs, done) {
     var docs = [];
     for (var i = 0; i < numDocs; i++) {
       var doc = createDoc();
@@ -52,7 +78,7 @@ function createTester() {
     pouch.bulkDocs(docs).then(done).catch(console.log.bind(console));
   }
 
-  function pouchWebSQLTest(numDocs, done) {
+  function pouchWebSQLBulkTest(numDocs, done) {
     var docs = [];
     for (var i = 0; i < numDocs; i++) {
       var doc = createDoc();
@@ -184,6 +210,10 @@ function createTester() {
         return idbTest;
       case 'webSQL':
         return webSQLTest;
+      case 'pouchBulk':
+        return pouchBulkTest;
+      case 'pouchWebSQLBulk':
+        return pouchWebSQLBulkTest;
     }
   }
 
