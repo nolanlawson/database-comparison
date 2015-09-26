@@ -6,38 +6,60 @@
 </head>
 <body>
 <h1>Client-side database comparison</h1>
-<img src="kirby.gif"/>
-<img id="kirbyPng" src="kirby.png"/>
+
+
+<div style="display:inline-block">
+  <img src="kirby.gif"/>
+  <h4>Animated GIF</h4>
+</div>
+<div style="display:inline-block">
+  <img class="spin-js" src="kirby.png"/>
+  <h4>JS animation</h4>
+</div>
+<div style="display:inline-block">
+  <img class="spin" src="kirby.png"/>
+  <h4>CSS animation</h4>
+</div>
 
 <pre id="display"></pre>
 
 <div>
   <h4>Database</h4>
-  <input type="radio" name="db" id="dbMemory" value="regularObject" checked="checked"/>
-  <label for="dbMemory">Regular object</label>
-  <br/>
-  <input type="radio" name="db" id="dbLocalStorage" value="localStorage"/>
-  <label for="dbLocalStorage">LocalStorage</label>
-  <br/>
-  <input type="radio" name="db" id="dbPouch" value="pouch"/>
-  <label for="dbPouch">PouchDB</label>
-  <br/>
-  <input type="radio" name="db" id="dbPouchWebSQL" value="pouchWebSQL"/>
-  <label for="dbPouchWebSQL">PouchDB (WebSQL)</label>
-  <br/>
-  <input type="radio" name="db" id="dbLocalForage" value="localForage"/>
-  <label for="dbLocalForage">LocalForage</label>
-  <br/>
-  <input type="radio" name="db" id="dbDexie" value="dexie"/>
-  <label for="dbDexie">Dexie</label>
-  <br/>
-  <input type="radio" name="db" id="dbLoki" value="loki"/>
-  <label for="dbLoki">LokiJS</label>
+
+  <div style="display:inline-block">
+    <input type="radio" name="db" id="dbMemory" value="regularObject"
+           checked="checked"/>
+    <label for="dbMemory">Regular object</label>
+    <br/>
+    <input type="radio" name="db" id="dbLocalStorage" value="localStorage"/>
+    <label for="dbLocalStorage">LocalStorage</label>
+    <br/>
+    <input type="radio" name="db" id="dbPouch" value="pouch"/>
+    <label for="dbPouch">PouchDB</label>
+    <br/>
+    <input type="radio" name="db" id="dbPouchWebSQL" value="pouchWebSQL"/>
+    <label for="dbPouchWebSQL">PouchDB (WebSQL)</label>
+  </div>
+  <div style="display:inline-block">
+    <input type="radio" name="db" id="dbLocalForage" value="localForage"/>
+    <label for="dbLocalForage">LocalForage</label>
+    <br/>
+    <input type="radio" name="db" id="dbLocalForageWebSQL"
+           value="localForageWebSQL"/>
+    <label for="dbLocalForageWebSQL">LocalForage (WebSQL)</label>
+    <br/>
+    <input type="radio" name="db" id="dbDexie" value="dexie"/>
+    <label for="dbDexie">Dexie</label>
+    <br/>
+    <input type="radio" name="db" id="dbLoki" value="loki"/>
+    <label for="dbLoki">LokiJS</label>
+  </div>
 </div>
 
 <div>
   <h4>Number of objects</h4>
-  <input type="radio" name="numDocs" id="docs_1000" value="1000" checked="checked"/>
+  <input type="radio" name="numDocs" id="docs_1000" value="1000"
+         checked="checked"/>
   <label for="docs_1000">1000</label>
   <br/>
   <input type="radio" name="numDocs" id="docs_10000" value="10000"/>
@@ -60,17 +82,17 @@
 <script src="node_modules/lokijs/build/lokijs.min.js"></script>
 <script src="index.js"></script>
 <script>
-  var kirbyPng = document.getElementById('kirbyPng');
+  var kirbyPng = document.getElementsByClassName('spin-js')[0];
 
   var rotate = 0;
   setInterval(function () {
-    rotate += 5;
+    rotate -= 5;
     if (rotate === 360) {
       rotate = 0;
     }
     kirbyPng.style.transform = 'rotate(' + rotate + 'deg)';
     kirbyPng.style.webkitTransform = 'rotate(' + rotate + 'deg)';
-  }, 25);
+  }, 14);
 </script>
 </body>
 </html>

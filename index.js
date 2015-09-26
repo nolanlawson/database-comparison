@@ -9,6 +9,13 @@ document.addEventListener("DOMContentLoaded", function () {
   var dexieDB = new Dexie('dexie_test');
   dexieDB.version(1).stores({ docs: 'id'});
   dexieDB.open();
+  var localForageDB = localforage.createInstance({
+    name: 'test_localforage'
+  });
+  var localForageWebSQLDB = localforage.createInstance({
+    name: 'test_localforage_websql',
+    driver: localforage.WEBSQL
+  });
 
   function disableButtons() {
     for (var i = 0; i < buttons.length; i++) {
@@ -87,7 +94,19 @@ document.addEventListener("DOMContentLoaded", function () {
     var promise = Promise.resolve();
     function addDoc(i) {
       var doc = createDoc();
-      return localforage.setItem('doc_' + i, doc);
+      return localForageDB.setItem('doc_' + i, doc);
+    }
+    for (var i = 0; i < numDocs; i++) {
+      promise = promise.then(addDoc(i));
+    }
+    promise.then(done).catch(console.log.bind(console));
+  }
+
+  function localForageWebSQLTest(numDocs, done) {
+    var promise = Promise.resolve();
+    function addDoc(i) {
+      var doc = createDoc();
+      return localForageWebSQLDB.setItem('doc_' + i, doc);
     }
     for (var i = 0; i < numDocs; i++) {
       promise = promise.then(addDoc(i));
@@ -122,6 +141,8 @@ document.addEventListener("DOMContentLoaded", function () {
         return lokiTest;
       case 'localForage':
         return localForageTest;
+      case 'localForageWebSQL':
+        return localForageWebSQLTest;
       case 'dexie':
         return dexieTest;
     }
@@ -135,7 +156,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     var promises = [
-      localforage.clear(),
+      localForageDB.clear(),
+      Promise.resolve().then(function () {
+        if (typeof openDatabase !== 'undefined') {
+          return localForageWebSQLDB.clear();
+        }
+      }),
       dexieDB.delete().then(function () {
         dexieDB = new Dexie('dexie_test');
         dexieDB.version(1).stores({ docs: 'id'});
