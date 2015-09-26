@@ -43,23 +43,29 @@ function createTester() {
   }
 
   function pouchTest(numDocs, done) {
-    var docs = [];
-    for (var i = 0; i < numDocs; i++) {
+    var promise = Promise.resolve();
+    function addDoc(i) {
       var doc = createDoc();
-      doc._id = 'doc_ ' + i;
-      docs.push(doc);
+      doc._id = 'doc_' + i;
+      return pouch.put(doc);
     }
-    pouch.bulkDocs(docs).then(done).catch(console.log.bind(console));
+    for (var i = 0; i < numDocs; i++) {
+      promise = promise.then(addDoc(i));
+    }
+    promise.then(done).catch(console.log.bind(console));
   }
 
   function pouchWebSQLTest(numDocs, done) {
-    var docs = [];
-    for (var i = 0; i < numDocs; i++) {
+    var promise = Promise.resolve();
+    function addDoc(i) {
       var doc = createDoc();
-      doc._id = 'doc_ ' + i;
-      docs.push(doc);
+      doc._id = 'doc_' + i;
+      return pouchWebSQL.put(doc);
     }
-    pouchWebSQL.bulkDocs(docs).then(done).catch(console.log.bind(console));
+    for (var i = 0; i < numDocs; i++) {
+      promise = promise.then(addDoc(i));
+    }
+    promise.then(done).catch(console.log.bind(console));
   }
 
   function lokiTest(numDocs, done) {
