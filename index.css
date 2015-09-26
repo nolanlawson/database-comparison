@@ -7,3 +7,21 @@ button {
   padding: 10px;
   margin: 20px 5px;
 }
+
+@media (max-width: 700px) {
+  h1 {
+    font-size: 18px;
+  }
+  h4 {
+    font-size: 14px;
+  }
+  label {
+    font-size: 12px;
+  }
+  button {
+    font-size: 18px;
+  }
+  #kirby {
+    max-height: 60px;
+  }
+}

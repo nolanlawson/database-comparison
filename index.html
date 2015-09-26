@@ -1,12 +1,12 @@
 <html>
 <head>
-  <title>Client-side database comparison</title>
+  <title>Browser DB comparison</title>
   <link rel="stylesheet" href="index.css">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
-<h1>Client-side database comparison</h1>
-<img src="kirby.gif"/>
+<h1>Browser database comparison</h1>
+<img id="kirby" src="kirby.gif"/>
 
 <div>
   <h4>Database</h4>
@@ -19,16 +19,22 @@
     <input type="radio" name="db" id="dbLocalStorage" value="localStorage"/>
     <label for="dbLocalStorage">LocalStorage</label>
     <br/>
+    <input type="radio" name="db" id="idb" value="idb"/>
+    <label for="idb">IndexedDB</label>
+    <br/>
+    <input type="radio" name="db" id="webSQL" value="webSQL"/>
+    <label for="webSQL">WebSQL</label>
+    <br/>
+    <input type="radio" name="db" id="dbLoki" value="loki"/>
+    <label for="dbLoki">LokiJS</label>
+  </div>
+  <div style="display:inline-block;">
     <input type="radio" name="db" id="dbPouch" value="pouch"/>
     <label for="dbPouch">PouchDB</label>
     <br/>
     <input type="radio" name="db" id="dbPouchWebSQL" value="pouchWebSQL"/>
     <label for="dbPouchWebSQL">PouchDB (WebSQL)</label>
     <br/>
-    <input type="radio" name="db" id="dbDexie" value="dexie"/>
-    <label for="dbDexie">Dexie</label>
-  </div>
-  <div style="display:inline-block;">
     <input type="radio" name="db" id="dbLocalForage" value="localForage"/>
     <label for="dbLocalForage">LocalForage</label>
     <br/>
@@ -36,14 +42,9 @@
            value="localForageWebSQL"/>
     <label for="dbLocalForageWebSQL">LocalForage (WebSQL)</label>
     <br/>
-    <input type="radio" name="db" id="dbLoki" value="loki"/>
-    <label for="dbLoki">LokiJS</label>
-    <br/>
-    <input type="radio" name="db" id="idb" value="idb"/>
-    <label for="idb">Raw IndexedDB</label>
-    <br/>
-    <input type="radio" name="db" id="webSQL" value="webSQL"/>
-    <label for="webSQL">Raw WebSQL</label>
+    <input type="radio" name="db" id="dbDexie" value="dexie"/>
+    <label for="dbDexie">Dexie</label>
+
   </div>
 </div>
 
@@ -73,7 +74,7 @@
 
 <div>
   <button type="button" id="insertButton">Insert docs</button>
-  <button type="button" id="deleteButton">Delete everything</button>
+  <button type="button" id="deleteButton">Clear all</button>
 </div>
 
 <pre id="display"></pre>
