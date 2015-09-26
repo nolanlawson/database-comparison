@@ -37,7 +37,8 @@ document.addEventListener("DOMContentLoaded", function () {
     var numDocsChoice = getChoice('numDocs');
     var numDocs = parseInt(numDocsChoice.value, 10);
     var useWorker = getChoice('worker').value === 'true';
-    display.innerHTML = 'Inserting ' + numDocs + ' docs using ' + dbTypeChoice.label + '...';
+    display.innerHTML = 'Inserting ' + numDocs + ' docs using ' +
+      dbTypeChoice.label + (useWorker ? ' in a worker' : '') + '...';
 
     function done(timeSpent) {
       display.innerHTML += "\nTook " + timeSpent + "ms";

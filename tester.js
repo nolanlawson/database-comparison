@@ -5,15 +5,17 @@ function createTester() {
   var pouchWebSQL = new PouchDB('pouch_test_websql', {adapter: 'websql'});
   var lokiDB = new loki.Collection('loki_test', {indices: ['id']});
   var dexieDB = new Dexie('dexie_test');
-  dexieDB.version(1).stores({ docs: 'id'});
+  dexieDB.version(1).stores({docs: 'id'});
   dexieDB.open();
+  var openIndexedDBReq;
+  var webSQLDB;
   var localForageDB;
   var localForageWebSQLDB;
   if (typeof localforage !== 'undefined') {
     localForageDB = localforage.createInstance({
       name: 'test_localforage'
     });
-    var localForageWebSQLDB = localforage.createInstance({
+    localForageWebSQLDB = localforage.createInstance({
       name: 'test_localforage_websql',
       driver: localforage.WEBSQL
     });
@@ -106,6 +108,60 @@ function createTester() {
     promise.then(done).catch(console.log.bind(console));
   }
 
+  function idbTest(numDocs, done) {
+
+    function onDBReady(db) {
+      var txn = db.transaction('docs', 'readwrite');
+      var oStore = txn.objectStore('docs');
+      for (var i = 0; i < numDocs; i++) {
+        var doc = createDoc();
+        doc.id = 'doc_' + i;
+        oStore.put(doc);
+      }
+      txn.oncomplete = done;
+    }
+
+    if (openIndexedDBReq) {
+      // reuse the same event to avoid onblocked when deleting
+      onDBReady(openIndexedDBReq.result);
+    } else {
+      var req = openIndexedDBReq = indexedDB.open('test_idb', 1);
+      req.onsuccess = function (e) {
+        var db = e.target.result;
+        onDBReady(db);
+
+      };
+      req.onupgradeneeded = function (e) {
+        var db = e.target.result;
+        db.createObjectStore('docs', {keyPath: 'id'});
+      }
+    }
+  }
+
+  function webSQLTest(numDocs, done) {
+
+    function onReady() {
+      webSQLDB.transaction(function (txn) {
+        for (var i = 0; i < numDocs; i++) {
+          var id = 'doc_' + i;
+          var doc = createDoc();
+          txn.executeSql('insert or replace into docs (id, json) values (?, ?);', [
+            id, JSON.stringify(doc)
+          ]);
+        }
+      }, console.log.bind(console), done);
+    }
+
+    if (webSQLDB) {
+      onReady();
+    } else {
+      webSQLDB = openDatabase('test_websql', 1, 'test_websql', 5000);
+      webSQLDB.transaction(function (txn) {
+        txn.executeSql('create table if not exists docs (id text unique, json text);');
+      }, console.log.bind(console), onReady);
+    }
+  }
+
   function getTest(db) {
     switch (db) {
       case 'regularObject':
@@ -124,6 +180,10 @@ function createTester() {
         return localForageWebSQLTest;
       case 'dexie':
         return dexieTest;
+      case 'idb':
+        return idbTest;
+      case 'webSQL':
+        return webSQLTest;
     }
   }
 
@@ -139,6 +199,24 @@ function createTester() {
     }
 
     var promises = [
+      new Promise(function (resolve, reject) {
+        if (typeof openDatabase === 'undefined') {
+          return resolve();
+        }
+        var webSQLDB = openDatabase('test_websql', 1, 'test_websql', 5000);
+        webSQLDB.transaction(function (txn) {
+          txn.executeSql('delete from docs;');
+        }, resolve, resolve);
+      }),
+      new Promise(function (resolve, reject) {
+        if (openIndexedDBReq) {
+          openIndexedDBReq.result.close();
+        }
+        var req = indexedDB.deleteDatabase('test_idb');
+        req.onsuccess = resolve;
+        req.onerror = reject;
+        req.onblocked = reject;
+      }),
       Promise.resolve().then(function () {
         if (typeof localforage !== 'undefined') {
           return localForageDB.clear();
