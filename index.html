@@ -7,12 +7,11 @@
 <body>
 <h1>Client-side database comparison</h1>
 <img src="kirby.gif"/>
-<pre id="display"></pre>
 
 <div>
   <h4>Database</h4>
 
-  <div style="display:inline-block">
+  <div style="display:inline-block;">
     <input type="radio" name="db" id="dbMemory" value="regularObject"
            checked="checked"/>
     <label for="dbMemory">Regular object</label>
@@ -26,7 +25,7 @@
     <input type="radio" name="db" id="dbPouchWebSQL" value="pouchWebSQL"/>
     <label for="dbPouchWebSQL">PouchDB (WebSQL)</label>
   </div>
-  <div style="display:inline-block">
+  <div style="display:inline-block;">
     <input type="radio" name="db" id="dbLocalForage" value="localForage"/>
     <label for="dbLocalForage">LocalForage</label>
     <br/>
@@ -43,17 +42,27 @@
 </div>
 
 <div>
-  <h4>Number of objects</h4>
-  <input type="radio" name="numDocs" id="docs_1000" value="1000"
-         checked="checked"/>
-  <label for="docs_1000">1000</label>
-  <br/>
-  <input type="radio" name="numDocs" id="docs_10000" value="10000"/>
-  <label for="docs_10000">10000</label>
-  <br/>
-  <input type="radio" name="numDocs" id="docs_100000" value="100000"/>
-  <label for="docs_100000">100000</label>
-
+  <div style="display:inline-block;vertical-align:top;">
+    <h4>Number of objects</h4>
+    <input type="radio" name="numDocs" id="docs_1000" value="1000"
+           checked="checked"/>
+    <label for="docs_1000">1000</label>
+    <br/>
+    <input type="radio" name="numDocs" id="docs_10000" value="10000"/>
+    <label for="docs_10000">10000</label>
+    <br/>
+    <input type="radio" name="numDocs" id="docs_100000" value="100000"/>
+    <label for="docs_100000">100000</label>
+  </div>
+  <div style="display:inline-block;vertical-align:top;margin-left:20px;">
+    <h4>Environment</h4>
+    <input type="radio" name="worker" id="workerNo" value="false"
+           checked="checked"/>
+    <label for="workerNo">Normal</label>
+    <br/>
+    <input type="radio" name="worker" id="workerYes" value="true"/>
+    <label for="workerYes">Web worker</label>
+  </div>
 </div>
 
 <div>
@@ -61,11 +70,14 @@
   <button type="button" id="deleteButton">Delete everything</button>
 </div>
 
+<pre id="display"></pre>
+
 <script src="node_modules/lie/dist/lie.polyfill.min.js"></script>
 <script src="node_modules/dexie/dist/latest/Dexie.min.js"></script>
 <script src="node_modules/pouchdb/dist/pouchdb.min.js"></script>
 <script src="node_modules/localforage/dist/localforage.min.js"></script>
 <script src="node_modules/lokijs/build/lokijs.min.js"></script>
+<script src="tester.js"></script>
 <script src="index.js"></script>
 </body>
 </html>

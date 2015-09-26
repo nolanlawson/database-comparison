@@ -2,12 +2,8 @@ html {
   font-family: Helvetica Neue, Helvetica, Arial;
 }
 
-div {
-  margin-top: 20px;
-}
-
 button {
   font-size: 24px;
   padding: 10px;
-  margin: 5px;
+  margin: 20px 5px;
 }

@@ -1,31 +1,14 @@
 document.addEventListener("DOMContentLoaded", function () {
   'use strict';
 
+  var tester = createTester();
   var buttons = document.getElementsByTagName('button');
   var display = document.getElementById('display');
-  var pouch = new PouchDB('pouch_test');
-  var pouchWebSQL = new PouchDB('pouch_test_websql', {adapter: 'websql'});
-  var lokiDB = new loki.Collection('loki_test', {indices: ['id']});
-  var dexieDB = new Dexie('dexie_test');
-  dexieDB.version(1).stores({ docs: 'id'});
-  dexieDB.open();
-  var localForageDB = localforage.createInstance({
-    name: 'test_localforage'
-  });
-  var localForageWebSQLDB = localforage.createInstance({
-    name: 'test_localforage_websql',
-    driver: localforage.WEBSQL
-  });
+  var worker = new Worker('worker.js');
 
-  function disableButtons() {
+  function disableButtons(bool) {
     for (var i = 0; i < buttons.length; i++) {
-      buttons[i].disabled = true;
-    }
-  }
-
-  function enableButtons() {
-    for (var i = 0; i < buttons.length; i++) {
-      buttons[i].disabled = false;
+      buttons[i].disabled = bool;
     }
   }
 
@@ -40,150 +23,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  function createDoc() {
-    return {
-      data: Math.random()
-    };
-  }
-
-  function regularObjectTest(numDocs, done) {
-    var obj = {};
-    for (var i = 0; i < numDocs; i++) {
-      obj['doc_' + i] = createDoc();
-    }
-    done();
-  }
-
-  function localStorageTest(numDocs, done) {
-    for (var i = 0; i < numDocs; i++) {
-      localStorage['doc_' + i] = createDoc();
-    }
-    done();
-  }
-
-  function pouchTest(numDocs, done) {
-    var docs = [];
-    for (var i = 0; i < numDocs; i++) {
-      var doc = createDoc();
-      doc._id = 'doc_ ' + i;
-      docs.push(doc);
-    }
-    pouch.bulkDocs(docs).then(done).catch(console.log.bind(console));
-  }
-
-  function pouchWebSQLTest(numDocs, done) {
-    var docs = [];
-    for (var i = 0; i < numDocs; i++) {
-      var doc = createDoc();
-      doc._id = 'doc_ ' + i;
-      docs.push(doc);
-    }
-    pouchWebSQL.bulkDocs(docs).then(done).catch(console.log.bind(console));
-  }
-
-  function lokiTest(numDocs, done) {
-    for (var i = 0; i < numDocs; i++) {
-      var doc = createDoc();
-      doc.id = 'doc_ ' + i;
-      lokiDB.insert(doc);
-    }
-    done();
-  }
-
-  function localForageTest(numDocs, done) {
-    var promise = Promise.resolve();
-    function addDoc(i) {
-      var doc = createDoc();
-      return localForageDB.setItem('doc_' + i, doc);
-    }
-    for (var i = 0; i < numDocs; i++) {
-      promise = promise.then(addDoc(i));
-    }
-    promise.then(done).catch(console.log.bind(console));
-  }
-
-  function localForageWebSQLTest(numDocs, done) {
-    var promise = Promise.resolve();
-    function addDoc(i) {
-      var doc = createDoc();
-      return localForageWebSQLDB.setItem('doc_' + i, doc);
-    }
-    for (var i = 0; i < numDocs; i++) {
-      promise = promise.then(addDoc(i));
-    }
-    promise.then(done).catch(console.log.bind(console));
-  }
-
-  function dexieTest(numDocs, done) {
-    var promise = Promise.resolve();
-    function addDoc(i) {
-      var doc = createDoc();
-      doc.id = 'doc_' + i;
-      return dexieDB.docs.add(doc);
-    }
-    for (var i = 0; i < numDocs; i++) {
-      promise = promise.then(addDoc(i));
-    }
-    promise.then(done).catch(console.log.bind(console));
-  }
-
-  function getTestFor(db) {
-    switch (db) {
-      case 'regularObject':
-        return regularObjectTest;
-      case 'localStorage':
-        return localStorageTest;
-      case 'pouch':
-        return pouchTest;
-      case 'pouchWebSQL':
-        return pouchWebSQLTest;
-      case 'loki':
-        return lokiTest;
-      case 'localForage':
-        return localForageTest;
-      case 'localForageWebSQL':
-        return localForageWebSQLTest;
-      case 'dexie':
-        return dexieTest;
-    }
-  }
-
-  function cleanup(done) {
-    localStorage.clear();
-    var lokiDocuments = lokiDB.find();
-    for (var i = 0; i < lokiDocuments.length; i++) {
-      lokiDB.remove(lokiDocuments[i]);
-    }
-
-    var promises = [
-      localForageDB.clear(),
-      Promise.resolve().then(function () {
-        if (typeof openDatabase !== 'undefined') {
-          return localForageWebSQLDB.clear();
-        }
-      }),
-      dexieDB.delete().then(function () {
-        dexieDB = new Dexie('dexie_test');
-        dexieDB.version(1).stores({ docs: 'id'});
-        dexieDB.open();
-      }),
-      pouch.destroy().then(function () {
-        pouch = new PouchDB('pouch_test');
-      }),
-      Promise.resolve().then(function () {
-        if (!pouchWebSQL.adapter) {
-          return Promise.resolve();
-        }
-        return pouchWebSQL.destroy().then(function () {
-
-          pouchWebSQL = new PouchDB('pouch_test_websql', {adapter: 'websql'});
-        });
-      })
-    ];
-
-    Promise.all(promises).then(done).catch(console.log.bind(console));
-  }
-
   function waitForUI(done) {
     display.getBoundingClientRect();
     requestAnimationFrame(function () {
@@ -193,37 +32,64 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
   document.getElementById('insertButton').addEventListener('click', function () {
-    disableButtons();
+    disableButtons(true);
     var dbTypeChoice = getChoice('db');
     var numDocsChoice = getChoice('numDocs');
     var numDocs = parseInt(numDocsChoice.value, 10);
-
+    var useWorker = getChoice('worker').value === 'true';
     display.innerHTML = 'Inserting ' + numDocs + ' docs using ' + dbTypeChoice.label + '...';
 
-    var fun = getTestFor(dbTypeChoice.value);
+    function done(timeSpent) {
+      display.innerHTML += "\nTook " + timeSpent + "ms";
+      disableButtons(false);
+    }
 
     waitForUI(function () {
-      var startTime = Date.now();
-      fun(numDocs, function () {
-        waitForUI(function () {
-          var endTime = Date.now();
-          display.innerHTML += "\nTook " + (endTime - startTime) + "ms";
-          enableButtons();
+      if (useWorker) {
+        worker.addEventListener('message', function listener(e) {
+          worker.removeEventListener('message', listener);
+          done(e.data.timeSpent);
         });
-      });
+        worker.postMessage({
+          action: 'test',
+          dbType: dbTypeChoice.value,
+          numDocs: numDocs
+        });
+      } else {
+        var fun = tester.getTest(dbTypeChoice.value);
+        var startTime = Date.now();
+        fun(numDocs, function () {
+          var endTime = Date.now();
+          var timeSpent = endTime - startTime;
+          done(timeSpent);
+        });
+      }
     });
   });
 
   document.getElementById('deleteButton').addEventListener('click', function () {
     display.innerHTML = 'Deleting...';
-    disableButtons();
+    disableButtons(true);
+    var useWorker = getChoice('worker').value === 'true';
+
     waitForUI(function () {
-      cleanup(function () {
-        waitForUI(function () {
-          enableButtons();
-          display.innerHTML += '\nDone.';
+
+      function done() {
+        disableButtons(false);
+        display.innerHTML += '\nDone.';
+      }
+
+      if (useWorker) {
+        worker.addEventListener('message', function listener(e) {
+          worker.removeEventListener('message', listener);
+          done();
         });
-      });
+        worker.postMessage({
+          action: 'cleanup'
+        });
+      } else {
+        tester.cleanup(done);
+      }
     });
   });
 });
