@@ -27,22 +27,20 @@ function createTester() {
     };
   }
 
-  function regularObjectTest(numDocs, done) {
+  function regularObjectTest(numDocs) {
     var obj = {};
     for (var i = 0; i < numDocs; i++) {
       obj['doc_' + i] = createDoc();
     }
-    done();
   }
 
-  function localStorageTest(numDocs, done) {
+  function localStorageTest(numDocs) {
     for (var i = 0; i < numDocs; i++) {
       localStorage['doc_' + i] = createDoc();
     }
-    done();
   }
 
-  function pouchTest(numDocs, done) {
+  function pouchTest(numDocs) {
     var promise = Promise.resolve();
     function addDoc(i) {
       var doc = createDoc();
@@ -52,10 +50,10 @@ function createTester() {
     for (var i = 0; i < numDocs; i++) {
       promise = promise.then(addDoc(i));
     }
-    promise.then(done).catch(console.log.bind(console));
+    return promise;
   }
 
-  function pouchWebSQLTest(numDocs, done) {
+  function pouchWebSQLTest(numDocs) {
     var promise = Promise.resolve();
     function addDoc(i) {
       var doc = createDoc();
@@ -65,19 +63,18 @@ function createTester() {
     for (var i = 0; i < numDocs; i++) {
       promise = promise.then(addDoc(i));
     }
-    promise.then(done).catch(console.log.bind(console));
+    return promise;
   }
 
-  function lokiTest(numDocs, done) {
+  function lokiTest(numDocs) {
     for (var i = 0; i < numDocs; i++) {
       var doc = createDoc();
       doc.id = 'doc_ ' + i;
       lokiDB.insert(doc);
     }
-    done();
   }
 
-  function localForageTest(numDocs, done) {
+  function localForageTest(numDocs) {
     var promise = Promise.resolve();
     function addDoc(i) {
       var doc = createDoc();
@@ -86,10 +83,10 @@ function createTester() {
     for (var i = 0; i < numDocs; i++) {
       promise = promise.then(addDoc(i));
     }
-    promise.then(done).catch(console.log.bind(console));
+    return promise;
   }
 
-  function localForageWebSQLTest(numDocs, done) {
+  function localForageWebSQLTest(numDocs) {
     var promise = Promise.resolve();
     function addDoc(i) {
       var doc = createDoc();
@@ -98,10 +95,10 @@ function createTester() {
     for (var i = 0; i < numDocs; i++) {
       promise = promise.then(addDoc(i));
     }
-    promise.then(done).catch(console.log.bind(console));
+    return promise;
   }
 
-  function dexieTest(numDocs, done) {
+  function dexieTest(numDocs) {
     var promise = Promise.resolve();
     function addDoc(i) {
       var doc = createDoc();
@@ -111,61 +108,70 @@ function createTester() {
     for (var i = 0; i < numDocs; i++) {
       promise = promise.then(addDoc(i));
     }
-    promise.then(done).catch(console.log.bind(console));
+    return promise;
   }
 
-  function idbTest(numDocs, done) {
-
-    function onDBReady(db) {
-      var txn = db.transaction('docs', 'readwrite');
-      var oStore = txn.objectStore('docs');
-      for (var i = 0; i < numDocs; i++) {
-        var doc = createDoc();
-        doc.id = 'doc_' + i;
-        oStore.put(doc);
+  function idbTest(numDocs) {
+    return Promise.resolve().then(function () {
+      if (openIndexedDBReq) {
+        // reuse the same event to avoid onblocked when deleting
+        return openIndexedDBReq.result;
       }
-      txn.oncomplete = done;
-    }
-
-    if (openIndexedDBReq) {
-      // reuse the same event to avoid onblocked when deleting
-      onDBReady(openIndexedDBReq.result);
-    } else {
-      var req = openIndexedDBReq = indexedDB.open('test_idb', 1);
-      req.onsuccess = function (e) {
-        var db = e.target.result;
-        onDBReady(db);
-
-      };
-      req.onupgradeneeded = function (e) {
-        var db = e.target.result;
-        db.createObjectStore('docs', {keyPath: 'id'});
-      }
-    }
-  }
-
-  function webSQLTest(numDocs, done) {
-
-    function onReady() {
-      webSQLDB.transaction(function (txn) {
+      return new Promise(function (resolve, reject) {
+        var req = openIndexedDBReq = indexedDB.open('test_idb', 1);
+        req.onblocked = reject;
+        req.onerror = reject;
+        req.onupgradeneeded = function (e) {
+          var db = e.target.result;
+          db.createObjectStore('docs', {keyPath: 'id'});
+        };
+        req.onsuccess = function (e) {
+          var db = e.target.result;
+          resolve(db);
+        };
+      });
+    }).then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var txn = db.transaction('docs', 'readwrite');
+        var oStore = txn.objectStore('docs');
         for (var i = 0; i < numDocs; i++) {
-          var id = 'doc_' + i;
           var doc = createDoc();
-          txn.executeSql('insert or replace into docs (id, json) values (?, ?);', [
-            id, JSON.stringify(doc)
-          ]);
+          doc.id = 'doc_' + i;
+          oStore.put(doc);
         }
-      }, console.log.bind(console), done);
-    }
+        txn.oncomplete = resolve;
+        txn.onerror = reject;
+        txn.onblocked = reject;
+      });
+    });
+  }
 
-    if (webSQLDB) {
-      onReady();
-    } else {
-      webSQLDB = openDatabase('test_websql', 1, 'test_websql', 5000);
-      webSQLDB.transaction(function (txn) {
-        txn.executeSql('create table if not exists docs (id text unique, json text);');
-      }, console.log.bind(console), onReady);
-    }
+  function webSQLTest(numDocs) {
+    return Promise.resolve().then(function () {
+      if (webSQLDB) {
+        return;
+      }
+      return new Promise(function (resolve, reject) {
+        webSQLDB = openDatabase('test_websql', 1, 'test_websql', 5000);
+        webSQLDB.transaction(function (txn) {
+          txn.executeSql(
+            'create table if not exists docs (id text unique, json text);');
+        }, reject, resolve);
+      });
+    }).then(function () {
+      return new Promise(function (resolve, reject) {
+        webSQLDB.transaction(function (txn) {
+          for (var i = 0; i < numDocs; i++) {
+            var id = 'doc_' + i;
+            var doc = createDoc();
+            txn.executeSql(
+              'insert or replace into docs (id, json) values (?, ?);', [
+                id, JSON.stringify(doc)
+              ]);
+          }
+        }, reject, resolve);
+      });
+    });
   }
 
   function getTest(db) {
@@ -194,7 +200,7 @@ function createTester() {
   }
 
 
-  function cleanup(done) {
+  function cleanup() {
     if (typeof localStorage !== 'undefined') {
       localStorage.clear();
     }
@@ -253,7 +259,7 @@ function createTester() {
       })
     ];
 
-    Promise.all(promises).then(done).catch(console.log.bind(console));
+    return Promise.all(promises);
   }
 
   return {

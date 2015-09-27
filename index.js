@@ -23,10 +23,40 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  function waitForUI(done) {
-    display.getBoundingClientRect();
-    requestAnimationFrame(function () {
-      requestAnimationFrame(done);
+  function waitForUI() {
+    return new Promise(function (resolve) {
+      display.getBoundingClientRect();
+      requestAnimationFrame(function () {
+        requestAnimationFrame(resolve);
+      });
+    });
+  }
+
+  function workerPromise(message) {
+    return new Promise(function (resolve, reject) {
+
+      function cleanup() {
+        worker.removeEventListener('message', onSuccess);
+        worker.removeEventListener('error', onError);
+      }
+
+      function onSuccess(e) {
+        cleanup();
+        if (e.data.error) {
+          reject(e.data.error);
+        } else {
+          resolve(e);
+        }
+      }
+
+      function onError(e) {
+        cleanup();
+        reject(e);
+      }
+
+      worker.addEventListener('message', onSuccess);
+      worker.addEventListener('error', onError);
+      worker.postMessage(message);
     });
   }
 
@@ -40,31 +70,30 @@ document.addEventListener("DOMContentLoaded", function () {
     display.innerHTML = 'Inserting ' + numDocs + ' docs using ' +
       dbTypeChoice.label + (useWorker ? ' in a worker' : '') + '...';
 
-    function done(timeSpent) {
-      display.innerHTML += "\nTook " + timeSpent + "ms";
-      disableButtons(false);
-    }
-
-    waitForUI(function () {
+    waitForUI().then(function () {
       if (useWorker) {
-        worker.addEventListener('message', function listener(e) {
-          worker.removeEventListener('message', listener);
-          done(e.data.timeSpent);
-        });
-        worker.postMessage({
+        return workerPromise({
           action: 'test',
           dbType: dbTypeChoice.value,
           numDocs: numDocs
-        });
-      } else {
-        var fun = tester.getTest(dbTypeChoice.value);
-        var startTime = Date.now();
-        fun(numDocs, function () {
-          var endTime = Date.now();
-          var timeSpent = endTime - startTime;
-          done(timeSpent);
+        }).then(function (e) {
+          return e.data.timeSpent;
         });
       }
+      var fun = tester.getTest(dbTypeChoice.value);
+      var startTime = Date.now();
+      return Promise.resolve().then(function () {
+        return fun(numDocs);
+      }).then(function () {
+        return Date.now() - startTime;
+      });
+    }).then(function (timeSpent) {
+      display.innerHTML += "\nTook " + timeSpent + "ms";
+      disableButtons(false);
+    }).catch(function (e) {
+      disableButtons(false);
+      display.innerHTML += "\nError: " + e;
+      console.error(e);
     });
   });
 
@@ -73,24 +102,18 @@ document.addEventListener("DOMContentLoaded", function () {
     disableButtons(true);
     var useWorker = getChoice('worker').value === 'true';
 
-    waitForUI(function () {
-
-      function done() {
-        disableButtons(false);
-        display.innerHTML += '\nDone.';
-      }
-
+    waitForUI().then(function () {
       if (useWorker) {
-        worker.addEventListener('message', function listener(e) {
-          worker.removeEventListener('message', listener);
-          done();
-        });
-        worker.postMessage({
-          action: 'cleanup'
-        });
-      } else {
-        tester.cleanup(done);
+        return workerPromise({ action: 'cleanup' });
       }
+      return tester.cleanup();
+    }).then(function () {
+      disableButtons(false);
+      display.innerHTML += '\nDone.';
+    }).catch(function (e) {
+      disableButtons(false);
+      display.innerHTML += "\nError: " + e;
+      console.error(e);
     });
   });
 });

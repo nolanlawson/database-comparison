@@ -14,21 +14,22 @@ self.addEventListener('message', function (e) {
   var action = e.data.action;
 
   if (action === 'cleanup') {
-    tester.cleanup(function () {
-      self.postMessage({
-        done: true
-      });
-    });
-  } else {
-    var test = tester.getTest(dbType);
-    var startTime = Date.now();
-    test(numDocs, function () {
-      var endTime = Date.now();
-      var timeSpent = endTime - startTime;
-      self.postMessage({
-        timeSpent: timeSpent
-      });
+    return tester.cleanup().then(function () {
+      self.postMessage({});
+    }).catch(function (e) {
+      console.error('worker error', e);
+      self.postMessage({ error: e.message });
     });
   }
 
+  var test = tester.getTest(dbType);
+  var startTime = Date.now();
+  Promise.resolve().then(function () {
+    return test(numDocs);
+  }).then(function () {
+    self.postMessage({ timeSpent: Date.now() - startTime });
+  }).catch(function (e) {
+    console.error('worker error', e);
+    self.postMessage({ error: e.message });
+  });
 });
