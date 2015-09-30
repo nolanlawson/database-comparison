@@ -2,7 +2,7 @@ function createTester() {
   'use strict';
 
   var pouch = new PouchDB('pouch_test');
-  var QL = new PouchDB('pouch_test_websql', {adapter: 'websql'});
+  var pouchWebSQL = new PouchDB('pouch_test_websql', {adapter: 'websql'});
   var lokiDB = new loki.Collection('loki_test', {indices: ['id']});
   var dexieDB = new Dexie('dexie_test');
   dexieDB.version(1).stores({docs: 'id'});
@@ -301,8 +301,7 @@ function createTester() {
           return Promise.resolve();
         }
         return pouchWebSQL.destroy().then(function () {
-
-          ebSQL = new PouchDB('pouch_test_websql', {adapter: 'websql'});
+          pouchWebSQL = new PouchDB('pouch_test_websql', {adapter: 'websql'});
         });
       })
     ];
