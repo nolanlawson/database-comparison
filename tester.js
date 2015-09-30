@@ -26,92 +26,98 @@ function createTester() {
       data: Math.random()
     };
   }
-
-  function regularObjectTest(numDocs) {
+  function createDocs(numDocs) {
+    var docs = new Array(numDocs);
+    for (var i = 0; i < numDocs; i++) {
+      docs[i] = createDoc();
+    }
+    return docs;
+  }
+  function regularObjectTest(docs) {
     var obj = {};
-    for (var i = 0; i < numDocs; i++) {
-      obj['doc_' + i] = createDoc();
+    for (var i = 0; i < docs.length; i++) {
+      obj['doc_' + i] = docs[i];
     }
   }
 
-  function localStorageTest(numDocs) {
-    for (var i = 0; i < numDocs; i++) {
-      localStorage['doc_' + i] = createDoc();
+  function localStorageTest(docs) {
+    for (var i = 0; i < docs.length; i++) {
+      localStorage['doc_' + i] = docs[i];
     }
   }
 
-  function pouchTest(numDocs) {
+  function pouchTest(docs) {
     var promise = Promise.resolve();
     function addDoc(i) {
-      var doc = createDoc();
+      var doc = docs[i];
       doc._id = 'doc_' + i;
       return pouch.put(doc);
     }
-    for (var i = 0; i < numDocs; i++) {
+    for (var i = 0; i < docs.length; i++) {
       promise = promise.then(addDoc(i));
     }
     return promise;
   }
 
-  function pouchWebSQLTest(numDocs) {
+  function pouchWebSQLTest(docs) {
     var promise = Promise.resolve();
     function addDoc(i) {
-      var doc = createDoc();
+      var doc = docs[i];
       doc._id = 'doc_' + i;
       return pouchWebSQL.put(doc);
     }
-    for (var i = 0; i < numDocs; i++) {
+    for (var i = 0; i < docs.length; i++) {
       promise = promise.then(addDoc(i));
     }
     return promise;
   }
 
-  function lokiTest(numDocs) {
-    for (var i = 0; i < numDocs; i++) {
-      var doc = createDoc();
+  function lokiTest(docs) {
+    for (var i = 0; i < docs.length; i++) {
+      var doc = docs[i];
       doc.id = 'doc_ ' + i;
       lokiDB.insert(doc);
     }
   }
 
-  function localForageTest(numDocs) {
+  function localForageTest(docs) {
     var promise = Promise.resolve();
     function addDoc(i) {
-      var doc = createDoc();
+      var doc = docs[i];
       return localForageDB.setItem('doc_' + i, doc);
     }
-    for (var i = 0; i < numDocs; i++) {
+    for (var i = 0; i < docs.length; i++) {
       promise = promise.then(addDoc(i));
     }
     return promise;
   }
 
-  function localForageWebSQLTest(numDocs) {
+  function localForageWebSQLTest(docs) {
     var promise = Promise.resolve();
     function addDoc(i) {
-      var doc = createDoc();
+      var doc = docs[i];
       return localForageWebSQLDB.setItem('doc_' + i, doc);
     }
-    for (var i = 0; i < numDocs; i++) {
+    for (var i = 0; i < docs.length; i++) {
       promise = promise.then(addDoc(i));
     }
     return promise;
   }
 
-  function dexieTest(numDocs) {
+  function dexieTest(docs) {
     var promise = Promise.resolve();
     function addDoc(i) {
-      var doc = createDoc();
+      var doc = docs[i];
       doc.id = 'doc_' + i;
       return dexieDB.docs.add(doc);
     }
-    for (var i = 0; i < numDocs; i++) {
+    for (var i = 0; i < docs.length; i++) {
       promise = promise.then(addDoc(i));
     }
     return promise;
   }
 
-  function idbTest(numDocs) {
+  function idbTest(docs) {
     return Promise.resolve().then(function () {
       if (openIndexedDBReq) {
         // reuse the same event to avoid onblocked when deleting
@@ -134,8 +140,8 @@ function createTester() {
       return new Promise(function (resolve, reject) {
         var txn = db.transaction('docs', 'readwrite');
         var oStore = txn.objectStore('docs');
-        for (var i = 0; i < numDocs; i++) {
-          var doc = createDoc();
+        for (var i = 0; i < docs.length; i++) {
+          var doc = docs[i];
           doc.id = 'doc_' + i;
           oStore.put(doc);
         }
@@ -146,7 +152,7 @@ function createTester() {
     });
   }
 
-  function webSQLTest(numDocs) {
+  function webSQLTest(docs) {
     return Promise.resolve().then(function () {
       if (webSQLDB) {
         return;
@@ -161,9 +167,9 @@ function createTester() {
     }).then(function () {
       return new Promise(function (resolve, reject) {
         webSQLDB.transaction(function (txn) {
-          for (var i = 0; i < numDocs; i++) {
+          for (var i = 0; i < docs.length; i++) {
             var id = 'doc_' + i;
-            var doc = createDoc();
+            var doc = docs[i];
             txn.executeSql(
               'insert or replace into docs (id, json) values (?, ?);', [
                 id, JSON.stringify(doc)
@@ -173,8 +179,19 @@ function createTester() {
       });
     });
   }
-
   function getTest(db) {
+    var fun = _getTest(db);
+    return test;
+    function test(arg) {
+      if (typeof arg === 'number') {
+        var docs = createDocs(arg);
+        return fun(docs);
+      } else {
+        return fun(arg);
+      }
+    }
+  }
+  function _getTest(db) {
     switch (db) {
       case 'regularObject':
         return regularObjectTest;
@@ -264,6 +281,7 @@ function createTester() {
 
   return {
     getTest: getTest,
-    cleanup: cleanup
+    cleanup: cleanup,
+    createDocs: createDocs
   }
 }

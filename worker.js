@@ -23,11 +23,11 @@ self.addEventListener('message', function (e) {
   }
 
   var test = tester.getTest(dbType);
-  var startTime = Date.now();
+
   Promise.resolve().then(function () {
     return test(numDocs);
   }).then(function () {
-    self.postMessage({ timeSpent: Date.now() - startTime });
+    self.postMessage({ success: true });
   }).catch(function (e) {
     console.error('worker error', e);
     self.postMessage({ error: e.message });

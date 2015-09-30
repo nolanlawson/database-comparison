@@ -67,21 +67,37 @@ document.addEventListener("DOMContentLoaded", function () {
     var numDocsChoice = getChoice('numDocs');
     var numDocs = parseInt(numDocsChoice.value, 10);
     var useWorker = getChoice('worker').value === 'true';
+    var cloneWorker = getChoice('worker').value === 'clone';
     display.innerHTML = 'Inserting ' + numDocs + ' docs using ' +
       dbTypeChoice.label + (useWorker ? ' in a worker' : '') + '...';
 
     waitForUI().then(function () {
+      var startTime = Date.now();
       if (useWorker) {
         return workerPromise({
           action: 'test',
           dbType: dbTypeChoice.value,
           numDocs: numDocs
         }).then(function (e) {
-          return e.data.timeSpent;
+          if (!e.data.success) {
+            throw new Error('did not work');
+          }
+          return Date.now() - startTime;
+        });
+      } else if (cloneWorker) {
+        return workerPromise({
+          action: 'test',
+          dbType: dbTypeChoice.value,
+          numDocs: tester.createDocs(numDocs)
+        }).then(function (e) {
+          if (!e.data.success) {
+            throw new Error('did not work');
+          }
+          return Date.now() - startTime;
         });
       }
       var fun = tester.getTest(dbTypeChoice.value);
-      var startTime = Date.now();
+
       return Promise.resolve().then(function () {
         return fun(numDocs);
       }).then(function () {
