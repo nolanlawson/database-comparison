@@ -5,7 +5,7 @@ function createTester() {
   var pouchWebSQL = new PouchDB('pouch_test_websql', {adapter: 'websql'});
   var lokiDB = new loki.Collection('loki_test', {indices: ['id']});
   var dexieDB = new Dexie('dexie_test');
-  dexieDB.version(1).stores({docs: 'id'});
+  dexieDB.version(1).stores({docs: '++,id'});
   dexieDB.open();
   var openIndexedDBReq;
   var webSQLDB;
@@ -129,19 +129,13 @@ function createTester() {
   }
 
   function dexieTest(docs) {
-    var promise = Promise.resolve();
-    function addDoc(i) {
-      return doAddDoc;
-      function doAddDoc() {
+    return dexieDB.transaction('rw', dexieDB.docs, function () {
+      for (var i = 0; i < docs.length; i++) {
         var doc = docs[i];
         doc.id = 'doc_' + i;
-        return dexieDB.docs.add(doc);
+        dexieDB.docs.add(doc);
       }
-    }
-    for (var i = 0; i < docs.length; i++) {
-      promise = promise.then(addDoc(i));
-    }
-    return promise;
+    });
   }
 
   function idbTest(docs) {
@@ -290,7 +284,7 @@ function createTester() {
       }),
       dexieDB.delete().then(function () {
         dexieDB = new Dexie('dexie_test');
-        dexieDB.version(1).stores({ docs: 'id'});
+        dexieDB.version(1).stores({ docs: '++,id'});
         dexieDB.open();
       }),
       pouch.destroy().then(function () {
