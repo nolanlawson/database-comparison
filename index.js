@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
   var tester = createTester();
   var buttons = document.getElementsByTagName('button');
   var display = document.getElementById('display');
+  var worker = new Worker('worker.js');
 
   function disableButtons(bool) {
     for (var i = 0; i < buttons.length; i++) {
@@ -70,7 +71,16 @@ document.addEventListener("DOMContentLoaded", function () {
       dbTypeChoice.label + (useWorker ? ' in a worker' : '') + '...';
 
     waitForUI().then(function () {
-      var fun = tester.getTest(dbTypeChoice.value, useWorker);
+      if (useWorker) {
+        return workerPromise({
+          action: 'test',
+          dbType: dbTypeChoice.value,
+          numDocs: numDocs
+        }).then(function (e) {
+          return e.data.timeSpent;
+        });
+      }
+      var fun = tester.getTest(dbTypeChoice.value);
       var startTime = Date.now();
       return Promise.resolve().then(function () {
         return fun(numDocs);
