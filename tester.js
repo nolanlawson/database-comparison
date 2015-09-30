@@ -2,7 +2,7 @@ function createTester() {
   'use strict';
 
   var pouch = new PouchDB('pouch_test');
-  var pouchWebSQL = new PouchDB('pouch_test_websql', {adapter: 'websql'});
+  var QL = new PouchDB('pouch_test_websql', {adapter: 'websql'});
   var lokiDB = new loki.Collection('loki_test', {indices: ['id']});
   var dexieDB = new Dexie('dexie_test');
   dexieDB.version(1).stores({docs: 'id'});
@@ -11,6 +11,7 @@ function createTester() {
   var webSQLDB;
   var localForageDB;
   var localForageWebSQLDB;
+  var obj, map, set;
   if (typeof localforage !== 'undefined') {
     localForageDB = localforage.createInstance({
       name: 'test_localforage'
@@ -34,12 +35,23 @@ function createTester() {
     return docs;
   }
   function regularObjectTest(docs) {
-    var obj = {};
+    obj = {};
     for (var i = 0; i < docs.length; i++) {
       obj['doc_' + i] = docs[i];
     }
   }
-
+  function mapTest(docs) {
+    map = new Map();
+    for (var i = 0; i < docs.length; i++) {
+      map.set('doc_' + i, docs[i]);
+    }
+  }
+  function setTest(docs) {
+    set = new Set();
+    for (var i = 0; i < docs.length; i++) {
+      set.add(docs[i]);
+    }
+  }
   function localStorageTest(docs) {
     for (var i = 0; i < docs.length; i++) {
       localStorage['doc_' + i] = docs[i];
@@ -49,9 +61,12 @@ function createTester() {
   function pouchTest(docs) {
     var promise = Promise.resolve();
     function addDoc(i) {
-      var doc = docs[i];
-      doc._id = 'doc_' + i;
-      return pouch.put(doc);
+      return doAddDoc;
+      function doAddDoc() {
+        var doc = docs[i];
+        doc._id = 'doc_' + i;
+        return pouch.put(doc);
+      }
     }
     for (var i = 0; i < docs.length; i++) {
       promise = promise.then(addDoc(i));
@@ -62,9 +77,12 @@ function createTester() {
   function pouchWebSQLTest(docs) {
     var promise = Promise.resolve();
     function addDoc(i) {
-      var doc = docs[i];
-      doc._id = 'doc_' + i;
-      return pouchWebSQL.put(doc);
+      return doAddDoc;
+      function doAddDoc() {
+        var doc = docs[i];
+        doc._id = 'doc_' + i;
+        return pouchWebSQL.put(doc);
+      }
     }
     for (var i = 0; i < docs.length; i++) {
       promise = promise.then(addDoc(i));
@@ -83,8 +101,11 @@ function createTester() {
   function localForageTest(docs) {
     var promise = Promise.resolve();
     function addDoc(i) {
-      var doc = docs[i];
-      return localForageDB.setItem('doc_' + i, doc);
+      return doAddDoc;
+      function doAddDoc() {
+        var doc = docs[i];
+        return localForageDB.setItem('doc_' + i, doc);
+      }
     }
     for (var i = 0; i < docs.length; i++) {
       promise = promise.then(addDoc(i));
@@ -95,8 +116,11 @@ function createTester() {
   function localForageWebSQLTest(docs) {
     var promise = Promise.resolve();
     function addDoc(i) {
-      var doc = docs[i];
-      return localForageWebSQLDB.setItem('doc_' + i, doc);
+      return doAddDoc;
+      function doAddDoc() {
+        var doc = docs[i];
+        return localForageWebSQLDB.setItem('doc_' + i, doc);
+      }
     }
     for (var i = 0; i < docs.length; i++) {
       promise = promise.then(addDoc(i));
@@ -107,9 +131,12 @@ function createTester() {
   function dexieTest(docs) {
     var promise = Promise.resolve();
     function addDoc(i) {
-      var doc = docs[i];
-      doc.id = 'doc_' + i;
-      return dexieDB.docs.add(doc);
+      return doAddDoc;
+      function doAddDoc() {
+        var doc = docs[i];
+        doc.id = 'doc_' + i;
+        return dexieDB.docs.add(doc);
+      }
     }
     for (var i = 0; i < docs.length; i++) {
       promise = promise.then(addDoc(i));
@@ -213,6 +240,10 @@ function createTester() {
         return idbTest;
       case 'webSQL':
         return webSQLTest;
+      case 'map':
+        return mapTest;
+      case 'set':
+        return setTest;
     }
   }
 
@@ -271,7 +302,7 @@ function createTester() {
         }
         return pouchWebSQL.destroy().then(function () {
 
-          pouchWebSQL = new PouchDB('pouch_test_websql', {adapter: 'websql'});
+          ebSQL = new PouchDB('pouch_test_websql', {adapter: 'websql'});
         });
       })
     ];

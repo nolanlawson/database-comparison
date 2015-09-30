@@ -16,6 +16,14 @@
            checked="checked"/>
     <label for="dbMemory">Regular object</label>
     <br/>
+    <input type="radio" name="db" id="dbMemMap" value="map"
+           checked="checked"/>
+    <label for="dbMemMap">ES6 Map</label>
+    <br/>
+    <input type="radio" name="db" id="dbMemSet" value="set"
+           checked="checked"/>
+    <label for="dbMemSet">ES6 Set</label>
+    <br/>
     <input type="radio" name="db" id="dbLocalStorage" value="localStorage"/>
     <label for="dbLocalStorage">LocalStorage</label>
     <br/>
@@ -24,11 +32,11 @@
     <br/>
     <input type="radio" name="db" id="webSQL" value="webSQL"/>
     <label for="webSQL">WebSQL</label>
-    <br/>
-    <input type="radio" name="db" id="dbLoki" value="loki"/>
-    <label for="dbLoki">LokiJS</label>
   </div>
   <div style="display:inline-block;">
+    <input type="radio" name="db" id="dbLoki" value="loki"/>
+    <label for="dbLoki">LokiJS</label>
+    <br/>
     <input type="radio" name="db" id="dbPouch" value="pouch"/>
     <label for="dbPouch">PouchDB</label>
     <br/>
