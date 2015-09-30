@@ -1,3 +1,4 @@
+var worker = new Worker('worker.js');
 function createTester() {
   'use strict';
 
@@ -173,8 +174,29 @@ function createTester() {
       });
     });
   }
-
-  function getTest(db) {
+function createWorker(db) {
+  return workerTest;
+  function workerTest(numDocs) {
+    return new Promise(function (yes, no) {
+      worker.addEventListener('error', no);
+      worker.addEventListener('message', function (e) {
+        yes(e.data);
+      });
+      var msg = {
+        dbType: db,
+        docs: new Array(numDocs)
+      };
+      for (var i = 0; i < numDocs; i++) {
+        msg.docs[i] = createDoc();
+      }
+      worker.postMessage(msg);
+    });
+  }
+}
+  function getTest(db, worker) {
+    if (worker) {
+      return createWorker(db);
+    }
     switch (db) {
       case 'regularObject':
         return regularObjectTest;
