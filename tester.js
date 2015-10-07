@@ -3,6 +3,7 @@ function createTester() {
 
   var pouch = new PouchDB('pouch_test');
   var pouchWebSQL = new PouchDB('pouch_test_websql', {adapter: 'websql'});
+  var pouchWorker = new PouchDB('pouch_test_worker', {adapter: 'worker'});
   var lokiDB = new loki.Collection('loki_test', {indices: ['id']});
   var dexieDB = new Dexie('dexie_test');
   dexieDB.version(1).stores({docs: '++,id'});
@@ -58,6 +59,27 @@ function createTester() {
     }
   }
 
+  function pouchBulkTest(docs) {
+    for (var i = 0; i < docs.length; i++) {
+      docs[i]._id = 'doc_' + i;
+    }
+    return pouch.bulkDocs(docs);
+  }
+
+  function pouchWebSQLBulkTest(docs) {
+    for (var i = 0; i < docs.length; i++) {
+      docs[i]._id = 'doc_' + i;
+    }
+    return pouchWebSQL.bulkDocs(docs);
+  }
+
+  function pouchWorkerBulkTest(docs) {
+    for (var i = 0; i < docs.length; i++) {
+      docs[i]._id = 'doc_' + i;
+    }
+    return pouchWorker.bulkDocs(docs);
+  }
+
   function pouchTest(docs) {
     var promise = Promise.resolve();
     function addDoc(i) {
@@ -66,6 +88,22 @@ function createTester() {
         var doc = docs[i];
         doc._id = 'doc_' + i;
         return pouch.put(doc);
+      }
+    }
+    for (var i = 0; i < docs.length; i++) {
+      promise = promise.then(addDoc(i));
+    }
+    return promise;
+  }
+
+  function pouchWorkerTest(docs) {
+    var promise = Promise.resolve();
+    function addDoc(i) {
+      return doAddDoc;
+      function doAddDoc() {
+        var doc = docs[i];
+        doc._id = 'doc_' + i;
+        return pouchWorker.put(doc);
       }
     }
     for (var i = 0; i < docs.length; i++) {
@@ -222,6 +260,14 @@ function createTester() {
         return pouchTest;
       case 'pouchWebSQL':
         return pouchWebSQLTest;
+      case 'pouchWorker':
+        return pouchWorkerTest;
+      case 'pouchBulk':
+        return pouchBulkTest;
+      case 'pouchWebSQLBulk':
+        return pouchWebSQLBulkTest;
+      case 'pouchWorkerBulk':
+        return pouchWorkerBulkTest;
       case 'loki':
         return lokiTest;
       case 'localForage':
@@ -296,6 +342,14 @@ function createTester() {
         }
         return pouchWebSQL.destroy().then(function () {
           pouchWebSQL = new PouchDB('pouch_test_websql', {adapter: 'websql'});
+        });
+      }),
+      Promise.resolve().then(function () {
+        if (typeof document === 'undefined') {
+          return Promise.resolve(); // don't run inside a worker
+        }
+        return pouchWorker.destroy().then(function () {
+          pouchWorker = new PouchDB('pouch_test_worker', {adapter: 'worker'});
         });
       })
     ];

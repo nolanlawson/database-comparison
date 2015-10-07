@@ -1,11 +1,11 @@
 <html>
 <head>
-  <title>Browser database comparison</title>
+  <title>Browser database comparison - with WorkerPouch</title>
   <link rel="stylesheet" href="index.css">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
-<h1>Browser database comparison</h1>
+<h1>Browser database comparison - with WorkerPouch</h1>
 <img id="kirby" src="kirby.gif"/>
 
 <div>
@@ -32,16 +32,31 @@
     <br/>
     <input type="radio" name="db" id="webSQL" value="webSQL"/>
     <label for="webSQL">WebSQL</label>
-  </div>
-  <div style="display:inline-block;">
+    <br/>
     <input type="radio" name="db" id="dbLoki" value="loki"/>
     <label for="dbLoki">LokiJS</label>
     <br/>
+    <input type="radio" name="db" id="dbDexie" value="dexie"/>
+    <label for="dbDexie">Dexie</label>
+  </div>
+  <div style="display:inline-block;vertical-align:top;">
     <input type="radio" name="db" id="dbPouch" value="pouch"/>
-    <label for="dbPouch">PouchDB</label>
+    <label for="dbPouch">PouchDB put()</label>
     <br/>
     <input type="radio" name="db" id="dbPouchWebSQL" value="pouchWebSQL"/>
-    <label for="dbPouchWebSQL">PouchDB (WebSQL)</label>
+    <label for="dbPouchWebSQL">PouchDB put() (WebSQL)</label>
+    <br/>
+    <input type="radio" name="db" id="dbPouchWorker" value="pouchWorker"/>
+    <label for="dbPouchWorker">PouchDB put() (WorkerPouch)</label>
+    <br/>
+    <input type="radio" name="db" id="dbPouchBulk" value="pouchBulk"/>
+    <label for="dbPouchBulk">PouchDB bulkDocs()</label>
+    <br/>
+    <input type="radio" name="db" id="dbPouchWebSQLBulk" value="pouchWebSQLBulk"/>
+    <label for="dbPouchWebSQLBulk">PouchDB bulkDocs() (WebSQL)</label>
+    <br/>
+    <input type="radio" name="db" id="dbPouchWorkerBulk" value="pouchWorkerBulk"/>
+    <label for="dbPouchWorkerBulk">PouchDB bulkDocs() (WorkerPouch)</label>
     <br/>
     <input type="radio" name="db" id="dbLocalForage" value="localForage"/>
     <label for="dbLocalForage">LocalForage</label>
@@ -49,10 +64,6 @@
     <input type="radio" name="db" id="dbLocalForageWebSQL"
            value="localForageWebSQL"/>
     <label for="dbLocalForageWebSQL">LocalForage (WebSQL)</label>
-    <br/>
-    <input type="radio" name="db" id="dbDexie" value="dexie"/>
-    <label for="dbDexie">Dexie</label>
-
   </div>
 </div>
 
@@ -93,6 +104,7 @@
 <script src="node_modules/lie/dist/lie.polyfill.min.js"></script>
 <script src="node_modules/dexie/dist/latest/Dexie.min.js"></script>
 <script src="node_modules/pouchdb/dist/pouchdb.min.js"></script>
+<script src="node_modules/worker-pouch/dist/pouchdb.worker-pouch.min.js"></script>
 <script src="node_modules/localforage/dist/localforage.min.js"></script>
 <script src="node_modules/lokijs/build/lokijs.min.js"></script>
 <script src="tester.js"></script>
