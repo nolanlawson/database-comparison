@@ -11,7 +11,7 @@ function createTester() {
   var webSQLDB;
   var localForageDB;
   var localForageWebSQLDB;
-  var obj, map, set;
+  var obj, map, set, imMap, imSet;
   if (typeof localforage !== 'undefined') {
     localForageDB = localforage.createInstance({
       name: 'test_localforage'
@@ -50,6 +50,18 @@ function createTester() {
     set = new Set();
     for (var i = 0; i < docs.length; i++) {
       set.add(docs[i]);
+    }
+  }
+  function imMapTest(docs) {
+    imMap = new Immutable.Map();
+    for (var i = 0; i < docs.length; i++) {
+      imMap = imMap.set('doc_' + i, docs[i]);
+    }
+  }
+  function imSetTest(docs) {
+    imSet = new Immutable.Set();
+    for (var i = 0; i < docs.length; i++) {
+      imSet = imSet.add(docs[i]);
     }
   }
   function localStorageTest(docs) {
@@ -238,6 +250,10 @@ function createTester() {
         return mapTest;
       case 'set':
         return setTest;
+      case 'immap':
+        return imMapTest;
+      case 'imset':
+        return imSetTest;
     }
   }
 

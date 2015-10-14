@@ -24,16 +24,24 @@
            checked="checked"/>
     <label for="dbMemSet">ES6 Set</label>
     <br/>
+    <input type="radio" name="db" id="imMemMap" value="immap"
+           checked="checked"/>
+    <label for="imMemMap">Immutable Map</label>
+    <br/>
+    <input type="radio" name="db" id="imMemSet" value="imset"
+           checked="checked"/>
+    <label for="imMemSet">Immutable Set</label>
+    <br/>
     <input type="radio" name="db" id="dbLocalStorage" value="localStorage"/>
     <label for="dbLocalStorage">LocalStorage</label>
     <br/>
     <input type="radio" name="db" id="idb" value="idb"/>
     <label for="idb">IndexedDB</label>
-    <br/>
-    <input type="radio" name="db" id="webSQL" value="webSQL"/>
-    <label for="webSQL">WebSQL</label>
   </div>
   <div style="display:inline-block;">
+    <input type="radio" name="db" id="webSQL" value="webSQL"/>
+    <label for="webSQL">WebSQL</label>
+    <br />
     <input type="radio" name="db" id="dbLoki" value="loki"/>
     <label for="dbLoki">LokiJS</label>
     <br/>
@@ -95,6 +103,7 @@
 <script src="node_modules/pouchdb/dist/pouchdb.min.js"></script>
 <script src="node_modules/localforage/dist/localforage.min.js"></script>
 <script src="node_modules/lokijs/build/lokijs.min.js"></script>
+<script src="node_modules/immutable/dist/immutable.min.js"></script>
 <script src="tester.js"></script>
 <script src="index.js"></script>
 </body>
