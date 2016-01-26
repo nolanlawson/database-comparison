@@ -58,6 +58,27 @@ function createTester() {
       imMap = imMap.set('doc_' + i, docs[i]);
     }
   }
+  function imListTest(docs) {
+    var imList = new Immutable.List();
+    for (var i = 0; i < docs.length; i++) {
+      imList = imList.push(docs[i]);
+    }
+  }
+  function imFromJSTest(docs) {
+    var obj = {}
+    for (var i = 0; i < docs.length; i++) {
+      obj['doc_' + i] = docs[i]
+    }
+    Immutable.fromJS(obj);
+  }
+  function imMapMergeDeepTest(docs) {
+    var imMap = new Immutable.Map();
+    var obj = {}
+    for (var i = 0; i < docs.length; i++) {
+      obj['doc_' + i] = docs[i]
+    }
+    imMap.mergeDeep(obj);
+  }
   function imSetTest(docs) {
     imSet = new Immutable.Set();
     for (var i = 0; i < docs.length; i++) {
@@ -254,6 +275,12 @@ function createTester() {
         return imMapTest;
       case 'imset':
         return imSetTest;
+      case 'imlist':
+        return imListTest;
+      case 'imfromjs':
+        return imFromJSTest;
+      case 'immergedeep':
+        return imMapMergeDeepTest;
     }
   }
 
