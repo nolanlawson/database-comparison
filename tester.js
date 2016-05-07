@@ -87,7 +87,7 @@ function createTester() {
   }
   function localStorageTest(docs) {
     for (var i = 0; i < docs.length; i++) {
-      localStorage['doc_' + i] = docs[i];
+      localStorage['doc_' + i] = JSON.stringify(docs[i]);
     }
   }
 
